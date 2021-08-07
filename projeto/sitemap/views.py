@@ -22,9 +22,9 @@ data['depot'] = 0
 
 
 class Index(View):
-    def get(self,request): 
+    def get(self,request,id): 
     #Rota Selecionada 
-        rota_selecioana = rota.objects.filter(nome_rota="sul")   
+        rota_selecioana = rota.objects.filter(nome_rota= id)   
 
     # Separar as cidades que precisam ser visitadas 
         cidade_visitadas = [] 
@@ -120,13 +120,12 @@ class Index(View):
         
         
         soma = 0 
-        cidades_feitas = []     
+        cidades_feitas = []    
         for x in rotas_seq:    
             cidades1 = cidade.objects.filter(cidade_origem = x )
             for xx in cidades1:
                 teste = xx.cidade_origem
                 if  teste not in cidades_feitas:
-                    soma = soma + 1 
                     
                     folium.Marker(location = [xx.long,xx.lati],
                     icon=folium.plugins.BeautifyIcon(
@@ -140,9 +139,21 @@ class Index(View):
                           ).add_to(m)
                     
                     cidades_feitas.append(xx.cidade_origem)    
+                    ultimo  = xx 
+                    soma = soma + 1 
+                    
+        for index,valor in enumerate (cidades_feitas): 
+            if index == 0:
+                valor_cidade = cidade.objects.filter(cidade_origem = valor)       
+                
+                
+        for x in valor_cidade:       
+            folium.Marker(
+                location=[ x.long, x.lati ],
+                    popup= x.cidade_origem,
+                    icon=folium.Icon(icon="cloud"),
+                ).add_to(m)      
 
-        print(Distancia)
-        
         
         # Mapa    
         m = m._repr_html_()
@@ -213,7 +224,7 @@ def print_solution(manager, routing, solution):
         index = solution.Value(routing.NextVar(index))
         route_distance += routing.GetArcCostForVehicle(previous_index, index, 0)
     plan_output += ' {}\n'.format(manager.IndexToNode(index))
-    #print(plan_output)
+    print(plan_output)
     plan_output += 'Distância percorrida: {}Km\n'.format(route_distance)
     
     resultado_final.append(plan_output)
